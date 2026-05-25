@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Trening">
+  <title>Treningsprogram | Tilbake til CrossFit Open</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:#fff; color:#111; line-height:1.5; }
+
+    .container { max-width:800px; margin:0 auto; padding:40px 24px 80px; }
+
+    h1 { font-size:28px; font-weight:800; margin-bottom:4px; }
+    .subtitle { font-size:14px; color:#666; margin-bottom:8px; }
+    .diagnosis { font-size:12px; color:#999; margin-bottom:32px; padding-bottom:16px; border-bottom:2px solid #111; }
+
+    /* PHASE NAV */
+    .phase-nav { display:flex; gap:0; margin-bottom:32px; border:2px solid #111; border-radius:6px; overflow:hidden; }
+    .phase-nav button { flex:1; padding:10px 8px; font-size:12px; font-weight:700; background:#fff; border:none; border-right:2px solid #111; cursor:pointer; text-transform:uppercase; letter-spacing:0.5px; }
+    .phase-nav button:last-child { border-right:none; }
+    .phase-nav button.active { background:#111; color:#fff; }
+    .phase-nav button:hover:not(.active) { background:#f0f0f0; }
+
+    /* PHASE INFO */
+    .phase-info { background:#f8f8f8; border:2px solid #111; border-radius:6px; padding:20px 24px; margin-bottom:24px; }
+    .phase-info h2 { font-size:18px; font-weight:800; margin-bottom:4px; }
+    .phase-info .dates { font-size:12px; color:#666; margin-bottom:8px; }
+    .phase-info p { font-size:13px; color:#444; }
+
+    /* DAY CARD */
+    .day { border:2px solid #111; border-radius:6px; margin-bottom:16px; overflow:hidden; }
+    .day-header { background:#111; color:#fff; padding:12px 20px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; -webkit-tap-highlight-color:transparent; user-select:none; }
+    .day-header h3 { font-size:14px; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+    .day-header .day-type { font-size:11px; font-weight:400; opacity:0.6; }
+    .day-header .toggle { font-size:18px; font-weight:300; transition:transform 0.2s; }
+    .day.open .day-header .toggle { transform:rotate(45deg); }
+    .day-body { display:none; padding:20px; }
+    .day.open .day-body { display:block; }
+
+    /* REST DAY */
+    .day.rest .day-header { background:#fff; color:#111; border-bottom:none; }
+    .day.rest { border-style:dashed; }
+
+    /* SECTIONS */
+    .section-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:#999; margin-top:16px; margin-bottom:8px; }
+    .section-label:first-child { margin-top:0; }
+
+    .exercise-list { list-style:none; }
+    .exercise-list li { font-size:13px; padding:6px 0; border-bottom:1px solid #eee; display:flex; justify-content:space-between; }
+    .exercise-list li:last-child { border-bottom:none; }
+    .exercise-name { font-weight:500; }
+    .exercise-sets { color:#666; font-size:12px; white-space:nowrap; margin-left:12px; }
+
+    .or-block { text-align:center; font-size:11px; font-weight:700; color:#999; text-transform:uppercase; letter-spacing:2px; padding:12px 0; }
+
+    .alt-box { background:#f8f8f8; border-radius:4px; padding:12px 16px; margin-bottom:8px; }
+    .alt-box h4 { font-size:12px; font-weight:700; margin-bottom:4px; }
+    .alt-box p { font-size:12px; color:#555; }
+
+    .wod-box { background:#f8f8f8; border:1px solid #ddd; border-radius:4px; padding:16px; margin-top:8px; }
+    .wod-box .wod-type { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#999; margin-bottom:6px; }
+    .wod-box ul { list-style:none; }
+    .wod-box ul li { font-size:13px; padding:3px 0; }
+    .wod-box .wod-note { font-size:11px; color:#999; margin-top:8px; font-style:italic; }
+
+    /* RULES */
+    .rules { border:2px solid #111; border-radius:6px; padding:24px; margin-top:32px; }
+    .rules h2 { font-size:16px; font-weight:800; margin-bottom:12px; text-transform:uppercase; letter-spacing:1px; }
+    .rules ul { list-style:none; }
+    .rules ul li { font-size:13px; padding:6px 0; border-bottom:1px solid #eee; padding-left:20px; position:relative; }
+    .rules ul li:last-child { border-bottom:none; }
+    .rules ul li::before { content:''; position:absolute; left:0; top:12px; width:8px; height:8px; background:#111; border-radius:50%; }
+
+    .stop-signals { border-color:#c00; }
+    .stop-signals h2 { color:#c00; }
+    .stop-signals ul li::before { background:#c00; }
+
+    .ready-signals { margin-top:16px; border-color:#090; }
+    .ready-signals h2 { color:#090; }
+    .ready-signals ul li::before { background:#090; }
+
+    /* TIMELINE */
+    .timeline { margin-top:32px; border:2px solid #111; border-radius:6px; padding:24px; }
+    .timeline h2 { font-size:16px; font-weight:800; margin-bottom:16px; text-transform:uppercase; letter-spacing:1px; }
+    .timeline-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #eee; }
+    .timeline-row:last-child { border-bottom:none; }
+    .timeline-date { font-size:12px; font-weight:700; width:120px; flex-shrink:0; }
+    .timeline-bar { height:24px; background:#111; border-radius:3px; display:flex; align-items:center; padding:0 10px; }
+    .timeline-bar span { font-size:10px; font-weight:700; color:#fff; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; }
+
+    .footer { text-align:center; margin-top:40px; padding-top:20px; border-top:1px solid #eee; font-size:11px; color:#ccc; }
+
+    @media (max-width: 600px) {
+      .container { padding:20px 16px 60px; }
+      h1 { font-size:22px; }
+      .phase-nav button { font-size:10px; padding:8px 4px; }
+      .phase-nav button small { font-size:9px; }
+      .day-header { padding:14px 16px; }
+      .day-header h3 { font-size:13px; }
+      .day-body { padding:16px; }
+      .exercise-list li { font-size:12px; }
+      .exercise-sets { font-size:11px; }
+      .timeline-row { flex-wrap:wrap; }
+      .timeline-date { width:100%; margin-bottom:4px; }
+      .timeline-bar { width:100% !important; }
+      .rules { padding:16px; }
+      .phase-info { padding:16px; }
+      .alt-box { padding:10px 12px; }
+    }
+
+    @media print {
+      .phase-nav { display:none; }
+      .day-body { display:block !important; }
+      .day { break-inside:avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <h1>Tilbake til CrossFit Open</h1>
+  <div class="subtitle">Gradvis opptrapping med prolaps og Modic-forandringer</div>
+  <div class="diagnosis">Diagnose: Lite skiveprolaps L5/S1 (venstre) | Modic type 1 L2/L3 | Degenerativ skive L2/L3</div>
+
+  <!-- PHASE NAV -->
+  <div class="phase-nav">
+    <button class="active" onclick="showPhase(1)">Fase 1<br><small>Uke 1-4</small></button>
+    <button onclick="showPhase(2)">Fase 2<br><small>Uke 5-8</small></button>
+    <button onclick="showPhase(3)">Fase 3<br><small>Uke 9-12</small></button>
+    <button onclick="showPhase(4)">Fase 4<br><small>Uke 13+</small></button>
+  </div>
+
+  <!-- ===================== FASE 1 ===================== -->
+  <div class="phase" id="phase-1">
+
+    <div class="phase-info">
+      <h2>Fase 1: Fundament</h2>
+      <div class="dates">Uke 1-4 | Core-stabilitet, utfall, assault bike. Ingen tunge loft.</div>
+      <p>Bygge beskyttelse rundt ryggen. Teste hva kroppen taler uten a provosere. Utfall er din hovedovelse for underkropp. Assault bike for kondisjon. Ingen romaskin (belaster prolapset).</p>
+    </div>
+
+    <!-- MANDAG -->
+    <div class="day open">
+      <div class="day-header" role="button" tabindex="0">
+        <div><h3>Mandag</h3><span class="day-type">CrossFit tilpasset</span></div>
+        <span class="toggle">+</span>
+      </div>
+      <div class="day-body">
+        <div class="section-label">Oppvarming (10 min)</div>
+        <ul class="exercise-list">
+          <li><span class="exercise-name">Dead bugs</span><span class="exercise-sets">2 x 8 per side</span></li>
+          <li><span class="exercise-name">Side plank</span><span class="exercise-sets">2 x 20 sek per side</span></li>
+          <li><span class="exercise-name">McGill curl-up</span><span class="exercise-sets">2 x 8</span></li>
+          <li><span class="exercise-name">Glute bridges</span><span class="exercise-sets">2 x 12</span></li>
+          <li><span class="exercise-name">Cat-cow</span><span class="exercise-sets">10 reps</span></li>
+        </ul>
+
+        <div class="section-label">Styrke (20 min)</div>
+        <ul class="exercise-list">
+          <li><span class="exercise-name">Utfall (lunges)</span><span class="exercise-sets">4 x 10 per ben</span></li>
+          <li><span class="exercise-name">Dumbbell strict press (lett)</span><span class="exercise-sets">4 x 10</span></li>
+          <li><span class="exercise-name">Ring rows</span><span class="exercise-sets">4 x 10</span></li>
+          <li><span class="exercise-name">Farmers carry</span><span class="exercise-sets">3 x 40 m</span></li>
+        </ul>
+
+        <div class="section-label">Kondisjon (20 min)</div>
+        <div class="wod-box">
+          <div class="wod-type">4 runder, hvile 1 min mellom</div>
+          <ul>
+            <li>12 wall balls (lett)</li>
+            <li>15 cal assault bike</li>
+            <li>12 box step-ups</li>
+          </ul>
+        </div>
+
+        <div class="section-label">Avslutning (10 min)</div>
+        <ul class="exercise-list">
+          <li><span class="exercise-name">Child's pose</span><span class="exercise-sets">1 min</span></li>
+          <li><span class="exercise-name">Pigeon stretch</span><span class="exercise-sets">1 min per side</span></li>
+          <li><span class="exercise-name">Hamstrings tøying</span><span class="exercise-sets">1 min per side</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- TIRSDAG -->
+    <div class="day">
+      <div class="day-header" role="button" tabindex="0">
+        <div><h3>Tirsdag</h3><span class="day-type">Intervall eller utholdenhet ute</span></div>
+        <span class="toggle">+</span>
+      </div>
+      <div class="day-body">
+        <p style="font-size:13px; color:#666; margin-bottom:12px;">Velg EN av disse basert pa dagsform og vaer:</p>
+
+        <div class="alt-box">
+          <h4>A: Assault Bike 4x4 (30 min)</h4>
+          <p>Oppvarming: McGill Big 3 + 5 min lett bike. Sa 4 x 4 min i sone 4-5 (hard). 3 min aktiv hvile mellom. Nedkjoring 5 min lett + tøying.</p>
+        </div>
+        <div class="alt-box">
+          <h4>B: Fjelltur (60 min)</h4>
+          <p>Moderat tempo. Bruk staver for avlastning. Unnga lange bratte nedoverbakker.</p>
+        </div>
+        <div class="alt-box">
+          <h4>C: Landeveissykkel (50-60 min)</h4>
+          <p>Sone 2 med noen sone 3-drag. Hev styret om framoverlening gir ryggsmerte.</p>
+        </div>
+        <div class="alt-box">
+          <h4>D: Rulleski klassisk (50 min)</h4>
+          <p>Klassisk er bedre enn skating for ryggen i starten.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ONSDAG -->
+    <div class="day">
+      <div class="day-header" role="button" tabindex="0">
+        <div><h3>Onsdag</h3><span class="day-type">CrossFit tilpasset</span></div>
+        <span class="toggle">+</span>
+      </div>
+      <div class="day-body">
+        <div class="section-label">Oppvarming (10 min)</div>
+        <ul class="exercise-list">
+          <li><span class="exercise-name">McGill Big 3</span><span class="exercise-sets">som mandag</span></li>
+          <li><span class="exercise-name">Bird dogs</span><span class="exercise-sets">2 x 10 per side</span></li>
+          <li><span class="exercise-name">Band pull-aparts</span><span class="exercise-sets">2 x 15</span></li>
+          <li><span class="exercise-name">Assault bike lett</span><span class="exercise-sets">3 min</span></li>
+        </ul>
+
+        <div class="section-label">Styrke (25 min)</div>
+        <ul class="exercise-list">
+          <li><span class="exercise-name">Walking lunges med dumbbells</span><span class="exercise-sets">4 x 12 per ben</span></li>
+          <li><span class="exercise-name">Bent-over rows med kettlebell</span><span class="exercise-sets">4 x 10 per side</span></li>
+          <li><span class="exercise-name">Dumbbell strict press</span><span class="exercise-sets">4 x 10</span></li>
+          <li><span class="exercise-name">Pallof press</span><span class="exercise-sets">3 x 10 per side</span></li>
+        </ul>
+
+        <div class="section-label">Kondisjon (20 min) - velg en</div>
+        <div class="alt-box">
+          <h4>A: Assault Bike 4x4</h4>
+          <p>4 x 4 min sone 4-5 med 3 min aktiv hvile. Andre 4x4-okt denne uken.</p>
+        </div>
+        <div class="alt-box">
+          <h4>B: AMRAP 15 min (rolig tempo)</h4>
+          <p>10 cal assault bike + 10 air squats + 10 push-ups + 10 utfall</p>
+        </div>
+
+        <div class="section-label">Avslutning (10 min)</div>
+        <ul class="exercise-list">
+          <li><span class="exercise-name">Foam roller thoracal rygg</span><span class="exercise-sets">2 min</span></li>
+          <li><span class="exercise-name">Hoftefleksortøying</span><span class="exercise-sets">1 min per side</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- TORSDAG -->
+    <div class="day rest">
+      <div class="day-header" role="button" tabindex="0">
+        <div><h3>Torsdag</h3><span class="day-type">Hviledag</span></div>
+        <span class="toggle">+</span>
+      </div>
+      <div class="day-body">
+        <ul class="exercise-list">
+          <li><span class="exercise-name">Lett gange</span><span class="exercise-sets">20-30 min</span></li>
+          <li><span class="exercise-name">McGill Big 3 (vedlikehold)</span><span class="exercise-sets">1 runde</span></li>
+          <li><span class="exercise-name">Mobilitet og tøying</span><span class="exercise-sets">10 min</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- FREDAG -->
+    <div class="day">
+      <div class="day-header" role="button" tabindex="0">
+        <div><h3>Fredag</h3><span class="day-type">CrossFit tilpasset</span></div>
+        <span class="toggle">+</span>
+      </div>
+      <div class="day-body">
+        <div class="section-label">Oppvarming (10 min)</div>
+        <ul class="exercise-list">
+          <li><span class="exercise-name">McGill Big 3</span><span class="exercise-sets">som mandag</span></li>
+          <li><span class="exercise-name">Glute bridges med band</span><span class="exercise-sets">2 x 12</span></li>
+          <li><span class="exercise-name">Shoulder dislocates med band</span><span class="exercise-sets">2 x 10</span></li>
+          <li><span class="exercise-name">Assault bike lett</span><span class="exercise-sets">3 min</span></li>
+        </ul>
+
+        <div class="section-label">Styrke (20 min)</div>
+        <ul class="exercise-list">
+          <li><span class="exercise-name">Reverse lunges med dumbbells</span><span class="exercise-sets">4 x 10 per ben</span></li>
+          <li><span class="exercise-name">Strikt pull-ups eller negatives</span><span class="exercise-sets">4 x 5-8</span></li>
+          <li><span class="exercise-name">Dumbbell bench press</span><span class="exercise-sets">4 x 10</span></li>
+          <li><span class="exercise-name">Suitcase carry</span><span class="exercise-sets">3 x 30 m per side</span></li>
+        </ul>
+
+        <div class="section-label">Kondisjon (20 min)</div>
+        <div class="wod-box">
+          <div class="wod-type">3 runder for tid</div>
+          <ul>
+            <li>15 cal assault bike</li>
+            <li>15 box step-ups</li>
+            <li>12 dumbbell strict press (lett)</li>
+            <li>200 m farmers carry</li>
+          </ul>
+        </div>
+
+        <div class="section-label">Avslutning (10 min)</div>
+        <ul class="exercise-list">
+          <li><span class="exercise-name">Tøying hofter, hamstrings, skuldre</span><span class="exercise-sets">fritt</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- LORDAG -->
+    <div class="day">
+      <div class="day-header" role="button" tabindex="0">
+        <div><h3>Lordag</h3><span class="day-type">Utholdenhet ute</span></div>
+        <span class="toggle">+</span>
+      </div>
+      <div class="day-body">
+        <p style="font-size:13px; color:#666; margin-bottom:12px;">Lang rolig okt. Ikke 4x4 i dag, det har du tirsdag og eventuelt onsdag.</p>
+
+        <div class="alt-box">
+          <h4>A: Lengre fjelltur (60-90 min)</h4>
+          <p>Moderat tempo. Fin mulighet for a ta med familien.</p>
+        </div>
+        <div class="alt-box">
+          <h4>B: Landeveissykkel (60-75 min)</h4>
+          <p>Sone 2. Lang rolig tur. Bygg aerob base.</p>
+        </div>
+        <div class="alt-box">
+          <h4>C: Gang/jogg intervaller (40-50 min)</h4>
+          <p>5 min gange, 2 min jogg, gjenta. Ok joggedelen gradvis over ukene.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SONDAG -->
+    <div class="day rest">
+      <div class="day-header" role="button" tabindex="0">
+        <div><h3>Sondag</h3><span class="day-type">Hviledag</span></div>
+        <span class="toggle">+</span>
+      </div>
+      <div class="day-body">
+        <ul class="exercise-list">
+          <li><span class="exercise-name">Komplett hvile eller rolig spasetur</span><span class="exercise-sets"></span></li>
+          <li><span class="exercise-name">Tøying / yoga</span><span class="exercise-sets">15-20 min valgfritt</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== FASE 2 ===================== -->
+  <div class="phase" id="phase-2" style="display:none;">
+
+    <div class="phase-info">
+      <h2>Fase 2: Bygg styrke</h2>
+      <div class="dates">Uke 5-8 | Squats og deadlifts introduseres. Jogging starter.</div>
+      <p>Du har 4 uker med smertefri trening bak deg. Na oker vi belastningen gradvis. Squats og deadlifts kommer inn pa lave vekter. Jogging introduseres ordentlig. 4x4 intervallene fortsetter.</p>
+    </div>
+
+    <div class="day open">
+      <div class="day-header" role="button" tabindex="0">
+        <div><h3>Mandag</h3><span class="day-type">CrossFit - styrke fokus</span></div>
+        <span class="toggle">+</span>
+      </div>
+      <div class="day-body">
+        <div class="section-label">Oppvarming (10 min)</div>
+        <ul class="exercise-list">
+          <li><span class="exercise-name">McGill Big 3</span><span class="exercise-sets">2 runder</span></li>
+          <li><span class="exercise-name">Glute bridges med band</span><span class="exercise-sets">2 x 12</span></li>
+          <li><span class="exercise-name">Assault bike</span><span class="exercise-sets">3 min lett</span></li>
+        </ul>
+
+        <div class="section-label">Styrke (25 min)</div>
+        <ul class="exercise-list">
+          <li><span class="exercise-name">Back squats (start 50% av gammel max)</span><span class="exercise-sets">4 x 6</span></li>
+          <li><span class="exercise-name">Strikt press med stang</span><span class="exercise-sets">4 x 8</span></li>
+          <li><span class="exercise-name">Hanging knee raises</span><span class="exercise-sets">3 x 10</span></li>
+          <li><span class="exercise-name">Walking lunges med vekt</span><span class="exercise-sets">3 x 10 per ben</span></li>
+        </ul>
+
+        <div class="section-label">Kondisjon (15 min)</div>
+        <div class="wod-box">
+          <div class="wod-type">EMOM 15 min (vekselvis)</div>
+          <ul>
+            <li>Min 1: 12 cal assault bike</li>
+            <li>Min 2: 10 kettlebell swings (russisk)</li>
+            <li>Min 3: 10 box step-ups</li>
+          </ul>
+        </div>
+
+        <div class="section-label">Avslutning (10 min)</div>
+        <ul class="exercise-list">
+          <li><span class="exercise-name">Tøying</span><span class="exercise-sets">fritt</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-header" role="button" tabindex="0">
+        <div><h3>Tirsdag</h3><span class="day-type">4x4 intervall eller utholdenhet</span></div>
+        <span class="toggle">+</span>
+      </div>
+      <div class="day-body">
+        <div class="alt-box">
+          <h4>A: Assault Bike 4x4 (30 min)</h4>
+          <p>4 x 4 min sone 4-5 med 3 min hvile. Presist som fase 1.</p>
+        </div>
+        <div class="alt-box">
+          <h4>B: Jogging (30-40 min)</h4>
+          <p>Start med 3 km, ok 10% per uke. Jevnt tempo. Myk underlag om mulig.</p>
+        </div>
+        <div class="alt-box">
+          <h4>C: Landeveissykkel med intervaller (60 min)</h4>
+          <p>15 min oppvarming, 4 x 4 min sone 4 med 3 min hvile, 15 min nedkjoring.</p>
+        </div>
+        <div class="alt-box">
+          <h4>D: Fjelltur eller rulleski (60 min)</h4>
+          <p>Moderat til hardt tempo.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-header" role="button" tabindex="0">
+        <div><h3>Onsdag</h3><span class="day-type">CrossFit - pull/hinge fokus</span></div>
+        <span class="toggle">+</span>
+      </div>
+      <div class="day-body">
+        <div class="section-label">Oppvarming (10 min)</div>
+        <ul class="exercise-list">
+          <li><span class="exercise-name">McGill Big 3</span><span class="exercise-sets">2 runder</span></li>
+          <li><span class="exercise-name">Band pull-aparts</span><span class="exercise-sets">2 x 15</span></li>
+          <li><span class="exercise-name">Assault bike</span><span class="exercise-sets">3 min lett</span></li>
+        </ul>
+
+        <div class="section-label">Styrke (25 min)</div>
+        <ul class="exercise-list">
+          <li><span class="exercise-name">Trap bar eller sumo deadlift (start 50%)</span><span class="exercise-sets">4 x 5</span></li>
+          <li><span class="exercise-name">Strikt pull-ups</span><span class="exercise-sets">4 x 6-8</span></li>
+          <li><span class="exercise-name">Front squats (lett, oppreist rygg)</span><span class="exercise-sets">4 x 8</span></li>
+          <li><span class="exercise-name">Pallof press</span><span class="exercise-sets">3 x 10 per side</span></li>
+        </ul>
+
+        <div class="section-label">Kondisjon (15 min)</div>
+        <div class="alt-box">
+          <h4>A: Assault Bike 4x4</h4>
+          <p>Andre 4x4-okt denne uken.</p>
+        </div>
+        <div class="alt-box">
+          <h4>B: AMRAP 12 min</h4>
+          <p>10 cal assault bike + 8 kettlebell swings + 10 lunges + 8 push-ups</p>
+        </div>
+
+        <div class="section-label">Avslutning (10 min)</div>
+        <ul class="exercise-list">
+          <li><span class="exercise-name">Foam roller thoracal</span><span class="exercise-sets">2 min</span></li>
+          <li><span class="exercise-name">Hoftetøying</span><span class="exercise-sets">2 min</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="day rest">
+      <div class="day-header"><div><h3>Torsdag</h3><span class="day-type">Hviledag</span></div></div>
+    </div>
+
+    <div class="day">
+      <div class="day-header" role="button" tabindex="0">
+        <div><h3>Fredag</h3><span class="day-type">CrossFit - power fokus</span></div>
+        <span class="toggle">+</span>
+      </div>
+      <div class="day-body">
+        <div class="section-label">Styrke (25 min)</div>
+        <ul class="exercise-list">
+          <li><span class="exercise-name">Power cleans (start lett, teknikk)</span><span class="exercise-sets">5 x 3</span></li>
+          <li><span class="exercise-name">Thrusters (lett til moderat)</span><span class="exercise-sets">4 x 8</span></li>
+          <li><span class="exercise-name">Dumbbell bench press</span><span class="exercise-sets">4 x 10</span></li>
+          <li><span class="exercise-name">Suitcase carry</span><span class="exercise-sets">3 x 30 m per side</span></li>
+        </ul>
+
+        <div class="section-label">Kondisjon (20 min)</div>
+        <div class="wod-box">
+          <div class="wod-type">3 runder for tid</div>
+          <ul>
+            <li>15 cal assault bike</li>
+            <li>12 thrusters (lett)</li>
+            <li>12 box step-ups</li>
+            <li>200 m farmers carry</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-header" role="button" tabindex="0">
+        <div><h3>Lordag</h3><span class="day-type">Utholdenhet ute (lang rolig)</span></div>
+        <span class="toggle">+</span>
+      </div>
+      <div class="day-body">
+        <div class="alt-box"><h4>A: Jogging 5-7 km</h4><p>Jevnt tempo. Bygg distanse gradvis.</p></div>
+        <div class="alt-box"><h4>B: Landeveissykkel 60-75 min</h4><p>Sone 2. Aerob base.</p></div>
+        <div class="alt-box"><h4>C: Fjelltur 60-90 min</h4><p>Hardere tempo enn fase 1. Eventuelt med tyngre sekk.</p></div>
+      </div>
+    </div>
+
+    <div class="day rest">
+      <div class="day-header"><div><h3>Sondag</h3><span class="day-type">Hviledag</span></div></div>
+    </div>
+  </div>
+
+  <!-- ===================== FASE 3 ===================== -->
+  <div class="phase" id="phase-3" style="display:none;">
+
+    <div class="phase-info">
+      <h2>Fase 3: CrossFit-spesifikk</h2>
+      <div class="dates">Uke 9-12 | Kipping, snatch, box jumps testes. Open-lignende workouts.</div>
+      <p>Nesten full deltakelse. Tester CrossFit Open-bevegelser en for en. Vekter oker gradvis. Introduserer en Open-lignende workout per uke for a bygge kampberedskap.</p>
+    </div>
+
+    <div class="day open">
+      <div class="day-header" role="button" tabindex="0">
+        <div><h3>Mandag</h3><span class="day-type">CrossFit - heavy day</span></div>
+        <span class="toggle">+</span>
+      </div>
+      <div class="day-body">
+        <div class="section-label">Styrke (30 min)</div>
+        <ul class="exercise-list">
+          <li><span class="exercise-name">Back squats (bygg mot 70-80%)</span><span class="exercise-sets">5 x 5</span></li>
+          <li><span class="exercise-name">Konvensjonell deadlift (bygg mot 60-70%)</span><span class="exercise-sets">4 x 4</span></li>
+          <li><span class="exercise-name">Toes-to-bar (gradvis fra knee raises)</span><span class="exercise-sets">4 x 8</span></li>
+        </ul>
+        <div class="section-label">Kondisjon (20 min)</div>
+        <div class="wod-box">
+          <div class="wod-type">AMRAP 20 min</div>
+          <ul>
+            <li>10 cal assault bike</li>
+            <li>10 box jumps (start lav boks)</li>
+            <li>10 wall balls</li>
+            <li>10 lunges</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-header" role="button" tabindex="0">
+        <div><h3>Tirsdag</h3><span class="day-type">4x4 intervall eller utholdenhet</span></div>
+        <span class="toggle">+</span>
+      </div>
+      <div class="day-body">
+        <div class="alt-box"><h4>A: Assault Bike 4x4</h4><p>Presist som tidligere faser. Fortsetter a bygge VO2max.</p></div>
+        <div class="alt-box"><h4>B: Jogging 6-8 km</h4><p>Jevnt tempo eller lett fartlek.</p></div>
+        <div class="alt-box"><h4>C: Sykkel eller rulleski (60 min)</h4><p>Blandeintervaller.</p></div>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-header" role="button" tabindex="0">
+        <div><h3>Onsdag</h3><span class="day-type">CrossFit - Olympic lifting + gymnastics</span></div>
+        <span class="toggle">+</span>
+      </div>
+      <div class="day-body">
+        <div class="section-label">Styrke (25 min)</div>
+        <ul class="exercise-list">
+          <li><span class="exercise-name">Power snatch (start lett, teknikk)</span><span class="exercise-sets">5 x 2</span></li>
+          <li><span class="exercise-name">Clean &amp; jerk (bygg gradvis)</span><span class="exercise-sets">5 x 2</span></li>
+          <li><span class="exercise-name">Kipping pull-ups (test forsiktig)</span><span class="exercise-sets">4 x 6-8</span></li>
+        </ul>
+        <div class="section-label">Kondisjon (20 min)</div>
+        <div class="wod-box">
+          <div class="wod-type">Open-lignende workout</div>
+          <ul>
+            <li>AMRAP 12 min:</li>
+            <li>6 thrusters</li>
+            <li>6 burpees</li>
+            <li>12 cal assault bike</li>
+          </ul>
+          <div class="wod-note">Test Open-intensitet 1x per uke. Skaler vekt etter behov.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="day rest">
+      <div class="day-header"><div><h3>Torsdag</h3><span class="day-type">Hviledag</span></div></div>
+    </div>
+
+    <div class="day">
+      <div class="day-header" role="button" tabindex="0">
+        <div><h3>Fredag</h3><span class="day-type">CrossFit - full WOD</span></div>
+        <span class="toggle">+</span>
+      </div>
+      <div class="day-body">
+        <div class="section-label">Styrke (20 min)</div>
+        <ul class="exercise-list">
+          <li><span class="exercise-name">Front squats</span><span class="exercise-sets">4 x 5</span></li>
+          <li><span class="exercise-name">Strikt press</span><span class="exercise-sets">4 x 6</span></li>
+        </ul>
+        <div class="section-label">Kondisjon (25 min)</div>
+        <div class="wod-box">
+          <div class="wod-type">For tid</div>
+          <ul>
+            <li>21-15-9</li>
+            <li>Deadlifts (moderat vekt)</li>
+            <li>Box jumps</li>
+            <li>Cal assault bike</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-header" role="button" tabindex="0">
+        <div><h3>Lordag</h3><span class="day-type">Lang utholdenhet</span></div>
+        <span class="toggle">+</span>
+      </div>
+      <div class="day-body">
+        <div class="alt-box"><h4>A: Jogging 7-10 km</h4><p>Tempo eller fartlek.</p></div>
+        <div class="alt-box"><h4>B: Lang sykkeltur 75-90 min</h4><p>Sone 2-3.</p></div>
+        <div class="alt-box"><h4>C: Fjelltur med tempo</h4><p>Brattere, raskere, eventuelt med sekk.</p></div>
+      </div>
+    </div>
+
+    <div class="day rest">
+      <div class="day-header"><div><h3>Sondag</h3><span class="day-type">Hviledag</span></div></div>
+    </div>
+  </div>
+
+  <!-- ===================== FASE 4 ===================== -->
+  <div class="phase" id="phase-4" style="display:none;">
+
+    <div class="phase-info">
+      <h2>Fase 4: Full trening</h2>
+      <div class="dates">Uke 13+ | Normal CrossFit-programmering. Open-klar.</div>
+      <p>Full CrossFit-trening. Normal WOD-programmering pa boks. Utholdenhet som onsket. Behold McGill Big 3 som permanent oppvarming. Belte pa tunge loft.</p>
+    </div>
+
+    <div class="day open">
+      <div class="day-header" role="button" tabindex="0">
+        <div><h3>Man / Ons / Fre</h3><span class="day-type">CrossFit (normal programmering)</span></div>
+        <span class="toggle">+</span>
+      </div>
+      <div class="day-body">
+        <p style="font-size:13px; color:#444; margin-bottom:12px;">Folg boksen sin programmering. Full intensitet. Alle bevegelser.</p>
+        <div class="section-label">Permanente vaner</div>
+        <ul class="exercise-list">
+          <li><span class="exercise-name">McGill Big 3 for HVER okt</span><span class="exercise-sets">permanent</span></li>
+          <li><span class="exercise-name">Grundig oppvarming rygg/hofter for tunge loft</span><span class="exercise-sets">alltid</span></li>
+          <li><span class="exercise-name">Belte pa tunge deadlifts og squats</span><span class="exercise-sets">alltid</span></li>
+          <li><span class="exercise-name">Lytt til kroppen etter tunge okter</span><span class="exercise-sets">alltid</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-header" role="button" tabindex="0">
+        <div><h3>Tirsdag</h3><span class="day-type">4x4 intervall eller utholdenhet</span></div>
+        <span class="toggle">+</span>
+      </div>
+      <div class="day-body">
+        <p style="font-size:13px; color:#444;">Assault Bike 4x4, jogging, sykkel, rulleski, eller fjelltur. Velg fritt.</p>
+      </div>
+    </div>
+
+    <div class="day rest">
+      <div class="day-header"><div><h3>Torsdag</h3><span class="day-type">Hviledag</span></div></div>
+    </div>
+
+    <div class="day">
+      <div class="day-header" role="button" tabindex="0">
+        <div><h3>Lordag</h3><span class="day-type">Lang utholdenhet</span></div>
+        <span class="toggle">+</span>
+      </div>
+      <div class="day-body">
+        <p style="font-size:13px; color:#444;">Lang tur, sykkel, jogging, rulleski. Velg fritt. Bygg aerob base.</p>
+      </div>
+    </div>
+
+    <div class="day rest">
+      <div class="day-header"><div><h3>Sondag</h3><span class="day-type">Hviledag</span></div></div>
+    </div>
+  </div>
+
+  <!-- ===================== RULES ===================== -->
+  <div class="rules stop-signals">
+    <h2>Stopp-signaler</h2>
+    <ul>
+      <li>Smerte som straler ned i beinet</li>
+      <li>Nummenhet eller prikking i ben eller fot</li>
+      <li>Ryggsmerter som varer mer enn 24 timer etter trening</li>
+      <li>Morgenstivhet som er vesentlig verre enn dagen for</li>
+      <li>Skarp smerte under en ovelse (ikke bare ubehag)</li>
+    </ul>
+  </div>
+
+  <div class="rules ready-signals">
+    <h2>Klar for neste fase nar</h2>
+    <ul>
+      <li>Smertefri i hverdagen mesteparten av tiden</li>
+      <li>Ingen utstralende smerter etter trening</li>
+      <li>Klarer alle ovelsene uten forverring neste dag</li>
+      <li>Minst 2 sammenhengende uker uten tilbakeslag</li>
+    </ul>
+  </div>
+
+  <div class="rules">
+    <h2>Permanente regler</h2>
+    <ul>
+      <li>McGill Big 3 for HVER okt (dette er permanent, ikke bare rehab)</li>
+      <li>Ingen romaskin (bruk assault bike, skierg, eller sykkel)</li>
+      <li>Foam roller pa thoracal rygg er bra, ALDRI pa lumbal (der prolapset er)</li>
+      <li>Ok aldri volum og intensitet samme uke</li>
+      <li>Belte pa tunge loft fra fase 2</li>
+      <li>4x4 intervaller maks 2 ganger per uke</li>
+      <li>Soevn 7-8 timer er like viktig som treningen</li>
+    </ul>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="timeline">
+    <h2>Tidslinje mot CrossFit Open 2027</h2>
+    <div class="timeline-row">
+      <div class="timeline-date">Mai - Juni</div>
+      <div class="timeline-bar" style="width:25%;"><span>Fase 1: Fundament</span></div>
+    </div>
+    <div class="timeline-row">
+      <div class="timeline-date">Juli</div>
+      <div class="timeline-bar" style="width:35%;"><span>Fase 2: Bygg styrke</span></div>
+    </div>
+    <div class="timeline-row">
+      <div class="timeline-date">August - Sep</div>
+      <div class="timeline-bar" style="width:50%;"><span>Fase 3: CrossFit-spesifikk</span></div>
+    </div>
+    <div class="timeline-row">
+      <div class="timeline-date">Okt - Feb</div>
+      <div class="timeline-bar" style="width:75%;"><span>Fase 4: Full trening</span></div>
+    </div>
+    <div class="timeline-row">
+      <div class="timeline-date">Feb/Mars 2027</div>
+      <div class="timeline-bar" style="width:100%; background:#090;"><span>CrossFit Open 2027</span></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Ikke medisinsk radgivning. Kjor programmet forbi fysioterapeut. Oppdatert mai 2026.
+  </div>
+
+</div>
+
+<script>
+function showPhase(n) {
+  document.querySelectorAll('.phase').forEach(p => p.style.display = 'none');
+  document.getElementById('phase-' + n).style.display = 'block';
+  document.querySelectorAll('.phase-nav button').forEach((b, i) => {
+    b.classList.toggle('active', i === n - 1);
+  });
+}
+
+// Mobile-friendly touch/click for day headers
+document.querySelectorAll('.day-header[role="button"]').forEach(header => {
+  header.addEventListener('touchend', function(e) {
+    e.preventDefault();
+    this.parentElement.classList.toggle('open');
+  });
+  header.addEventListener('click', function(e) {
+    this.parentElement.classList.toggle('open');
+  });
+});
+
+// Phase nav buttons - ensure touch works
+document.querySelectorAll('.phase-nav button').forEach((btn, i) => {
+  btn.addEventListener('touchend', function(e) {
+    e.preventDefault();
+    showPhase(i + 1);
+  });
+});
+</script>
+
+</body>
+</html>
