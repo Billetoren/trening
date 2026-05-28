@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROI Calculator | AP Race x TicketCo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --dark:#0a0a0a; --accent:#00B4D8; --gold:#FFD700; --white:#fff; --gray:#888; --light:#f5f5f5; --border:#e0e0e0; --radius:10px; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Inter',sans-serif; background:var(--light); color:var(--dark); }
+    .header { background:var(--dark); padding:24px 32px; display:flex; justify-content:space-between; align-items:center; }
+    .header-logo { font-size:22px; font-weight:800; color:var(--white); }
+    .header-logo span { color:var(--accent); }
+    .header-x { font-size:12px; color:rgba(255,255,255,0.3); margin:0 8px; }
+    .header-tc { font-size:14px; color:rgba(255,255,255,0.5); font-weight:500; }
+    .header-badge { font-size:10px; color:var(--accent); border:1px solid var(--accent); padding:4px 10px; border-radius:100px; letter-spacing:1px; text-transform:uppercase; font-weight:600; }
+    .container { max-width:900px; margin:0 auto; padding:32px 24px 80px; }
+    h1 { font-size:28px; font-weight:800; margin-bottom:6px; }
+    h1 em { color:var(--accent); font-style:normal; }
+    .subtitle { font-size:13px; color:var(--gray); margin-bottom:32px; }
+    .section-label { font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent); margin-bottom:14px; margin-top:32px; }
+    .calc-card { background:var(--white); border-radius:var(--radius); border:1px solid var(--border); padding:24px; margin-bottom:16px; }
+    .calc-card h3 { font-size:15px; font-weight:700; margin-bottom:14px; }
+    .calc-row { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px; margin-bottom:10px; align-items:end; }
+    .calc-field label { display:block; font-size:10px; font-weight:600; color:var(--gray); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
+    .calc-field input { width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-size:13px; font-family:'Inter',sans-serif; text-align:right; }
+    .calc-field input:focus { outline:none; border-color:var(--accent); }
+    .calc-field .prefix { display:flex; }
+    .calc-field .prefix span { background:var(--light); border:1px solid var(--border); border-right:none; border-radius:6px 0 0 6px; padding:8px; font-size:11px; color:var(--gray); }
+    .calc-field .prefix input { border-radius:0 6px 6px 0; }
+    .result-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:14px; padding-top:14px; border-top:2px solid var(--border); }
+    .result-box { text-align:center; padding:14px; border-radius:8px; }
+    .result-box.current { background:#FFF3E0; }
+    .result-box.ticketco { background:#E0F7FA; }
+    .result-box-label { font-size:10px; font-weight:600; color:var(--gray); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
+    .result-box-val { font-size:22px; font-weight:800; }
+    .result-box.current .result-box-val { color:#E65100; }
+    .result-box.ticketco .result-box-val { color:var(--accent); }
+    .opp-table { width:100%; border-collapse:collapse; }
+    .opp-table th { text-align:left; font-size:10px; font-weight:700; color:var(--gray); padding:8px 10px; border-bottom:2px solid var(--border); text-transform:uppercase; }
+    .opp-table td { padding:8px 10px; font-size:13px; border-bottom:1px solid var(--border); }
+    .opp-table tr:last-child td { border-bottom:none; }
+    .opp-table input { width:80px; padding:6px 8px; border:1px solid var(--border); border-radius:6px; font-size:12px; font-family:'Inter',sans-serif; text-align:right; }
+    .opp-table input:focus { outline:none; border-color:var(--accent); }
+    .opp-table .result { font-weight:700; color:var(--accent); }
+    .opp-hint { font-size:10px; color:var(--gray); display:block; margin-top:2px; }
+    .summary { background:var(--dark); border-radius:var(--radius); padding:40px; color:var(--white); text-align:center; margin-top:32px; }
+    .summary h2 { font-size:18px; font-weight:700; margin-bottom:20px; }
+    .summary-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-bottom:20px; }
+    .summary-val { font-size:32px; font-weight:800; color:var(--accent); }
+    .summary-label { font-size:11px; color:rgba(255,255,255,0.4); margin-top:4px; }
+    .summary-total { margin-top:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.1); }
+    .summary-total-val { font-size:48px; font-weight:800; color:var(--gold); }
+    .summary-total-label { font-size:13px; color:rgba(255,255,255,0.5); margin-top:4px; }
+    .summary-contract { margin-top:16px; }
+    .summary-contract-val { font-size:28px; font-weight:800; color:var(--white); }
+    .contract-field { margin-top:16px; }
+    .contract-field label { font-size:11px; color:rgba(255,255,255,0.4); margin-right:8px; }
+    .contract-field input { width:50px; padding:6px 8px; border:1px solid rgba(255,255,255,0.2); border-radius:6px; font-size:14px; text-align:center; background:rgba(255,255,255,0.1); color:var(--white); font-family:'Inter',sans-serif; }
+    .summary-note { font-size:11px; color:rgba(255,255,255,0.3); margin-top:16px; }
+    .print-btn { display:inline-block; margin-top:20px; padding:10px 24px; background:var(--accent); color:var(--white); font-size:12px; font-weight:700; border:none; border-radius:100px; cursor:pointer; letter-spacing:1px; text-transform:uppercase; }
+    .footer { text-align:center; padding:24px; font-size:10px; color:#ccc; }
+    @media print { .print-btn { display:none; } body { background:#fff; } }
+    @media (max-width:600px) { .calc-row { grid-template-columns:1fr 1fr; } .summary-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex; align-items:center; gap:4px;">
+    <span class="header-logo">AP <span>Race</span></span>
+    <span class="header-x">x</span>
+    <img src="data:image/png;base64,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" alt="TicketCo" style="height:22px;">
+  </div>
+  <div class="header-badge">ROI Calculator</div>
+</div>
+
+<div class="container">
+  <h1>Return on Investment <em>Calculator</em></h1>
+  <div class="subtitle">Calculate the value of switching to TicketCo for AP Race events, clinics, and competitions.</div>
+
+  <div class="section-label">1. Cost Savings</div>
+
+  <div class="calc-card">
+    <h3>Competition &amp; Event Tickets (spectators + entries)</h3>
+    <div class="calc-row">
+      <div class="calc-field"><label>Current fee %</label><div class="prefix"><span>%</span><input type="number" id="ev-cur-fee" value="5.0" step="0.1"></div></div>
+      <div class="calc-field"><label>Card/PSP fee %</label><div class="prefix"><span>%</span><input type="number" id="ev-cur-psp" value="1.5" step="0.1"></div></div>
+      <div class="calc-field"><label>Avg ticket price (GBP)</label><div class="prefix"><span>£</span><input type="number" id="ev-price" value="25" step="1"></div></div>
+      <div class="calc-field"><label>Yearly tickets/entries</label><input type="number" id="ev-qty" value="10000" step="100"></div>
+    </div>
+    <div class="calc-row" style="grid-template-columns:1fr 1fr;">
+      <div class="calc-field"><label>TicketCo all-inclusive fee %</label><div class="prefix"><span>%</span><input type="number" id="ev-tc-fee" value="4.5" step="0.1"></div></div>
+    </div>
+    <div class="result-row">
+      <div class="result-box current"><div class="result-box-label">Current annual cost</div><div class="result-box-val" id="ev-cur-total">-</div></div>
+      <div class="result-box ticketco"><div class="result-box-label">TicketCo annual cost</div><div class="result-box-val" id="ev-tc-total">-</div></div>
+    </div>
+  </div>
+
+  <div class="calc-card">
+    <h3>Clinic Registrations</h3>
+    <div class="calc-row">
+      <div class="calc-field"><label>Current fee %</label><div class="prefix"><span>%</span><input type="number" id="cl-cur-fee" value="5.0" step="0.1"></div></div>
+      <div class="calc-field"><label>Card/PSP fee %</label><div class="prefix"><span>%</span><input type="number" id="cl-cur-psp" value="1.5" step="0.1"></div></div>
+      <div class="calc-field"><label>Avg registration (GBP)</label><div class="prefix"><span>£</span><input type="number" id="cl-price" value="150" step="10"></div></div>
+      <div class="calc-field"><label>Yearly registrations</label><input type="number" id="cl-qty" value="2000" step="100"></div>
+    </div>
+    <div class="calc-row" style="grid-template-columns:1fr 1fr;">
+      <div class="calc-field"><label>TicketCo all-inclusive fee %</label><div class="prefix"><span>%</span><input type="number" id="cl-tc-fee" value="3.5" step="0.1"></div></div>
+    </div>
+    <div class="result-row">
+      <div class="result-box current"><div class="result-box-label">Current annual cost</div><div class="result-box-val" id="cl-cur-total">-</div></div>
+      <div class="result-box ticketco"><div class="result-box-label">TicketCo annual cost</div><div class="result-box-val" id="cl-tc-total">-</div></div>
+    </div>
+  </div>
+
+  <div class="section-label">2. Revenue Potential</div>
+  <div class="calc-card">
+    <table class="opp-table">
+      <thead><tr><th style="width:45%;">Opportunity</th><th style="width:15%;">Units/yr</th><th style="width:15%;">Avg £</th><th style="width:12%;">Yearly</th></tr></thead>
+      <tbody>
+        <tr><td>Increased conversion (frictionless checkout, no app)<span class="opp-hint">Guest checkout removes barriers for casual buyers</span></td><td><input type="number" class="units" value="0"></td><td><input type="number" class="price" value="0"></td><td class="result yearly">0</td></tr>
+        <tr><td>Spectator tickets for AP Race London International<span class="opp-hint">10,000+ spectators, professional ticketed entry</span></td><td><input type="number" class="units" value="0"></td><td><input type="number" class="price" value="0"></td><td class="result yearly">0</td></tr>
+        <tr><td>Merchandise bundling at checkout<span class="opp-hint">Training wear, accessories added during ticket purchase</span></td><td><input type="number" class="units" value="0"></td><td><input type="number" class="price" value="0"></td><td class="result yearly">0</td></tr>
+        <tr><td>Clinic upsell packages<span class="opp-hint">Premium tiers, VIP coaching, video analysis add-ons</span></td><td><input type="number" class="units" value="0"></td><td><input type="number" class="price" value="0"></td><td class="result yearly">0</td></tr>
+        <tr><td>Social media integrated sales<span class="opp-hint">Direct purchase links in Instagram and Facebook</span></td><td><input type="number" class="units" value="0"></td><td><input type="number" class="price" value="0"></td><td class="result yearly">0</td></tr>
+        <tr><td>AP Race Plus subscription upsell<span class="opp-hint">Offer subscription add-on at clinic/event checkout</span></td><td><input type="number" class="units" value="0"></td><td><input type="number" class="price" value="0"></td><td class="result yearly">0</td></tr>
+        <tr><td>Pay-per-view streaming of competitions<span class="opp-hint">Sell access to fans who cannot attend in person</span></td><td><input type="number" class="units" value="0"></td><td><input type="number" class="price" value="0"></td><td class="result yearly">0</td></tr>
+        <tr><td>Data-driven campaigns<span class="opp-hint">Target clinic attendees with event offers and vice versa</span></td><td><input type="number" class="units" value="0"></td><td><input type="number" class="price" value="0"></td><td class="result yearly">0</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-label">3. Time Savings</div>
+  <div class="calc-card">
+    <table class="opp-table">
+      <thead><tr><th style="width:45%;">Task</th><th style="width:18%;">Current hrs/yr</th><th style="width:18%;">With TicketCo</th><th style="width:19%;">Saved</th></tr></thead>
+      <tbody>
+        <tr><td>Event registration management<span class="opp-hint">Manual processing, confirmations, amendments</span></td><td><input type="number" class="t-current" value="0"></td><td><input type="number" class="t-ticketco" value="0"></td><td class="result t-saved">0</td></tr>
+        <tr><td>On-site check-in and entry<span class="opp-hint">Staff checking entries, wristbands, lists</span></td><td><input type="number" class="t-current" value="0"></td><td><input type="number" class="t-ticketco" value="0"></td><td class="result t-saved">0</td></tr>
+        <tr><td>Refund processing<span class="opp-hint">Manual refunds and bank transfers</span></td><td><input type="number" class="t-current" value="0"></td><td><input type="number" class="t-ticketco" value="0"></td><td class="result t-saved">0</td></tr>
+        <tr><td>Reporting and reconciliation<span class="opp-hint">Post-event financials, participant data</span></td><td><input type="number" class="t-current" value="0"></td><td><input type="number" class="t-ticketco" value="0"></td><td class="result t-saved">0</td></tr>
+        <tr><td>Managing multiple platforms<span class="opp-hint">Shopify + ticketing + registration across systems</span></td><td><input type="number" class="t-current" value="0"></td><td><input type="number" class="t-ticketco" value="0"></td><td class="result t-saved">0</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:12px;">
+      <span style="font-size:11px; color:var(--gray);">Hourly cost of staff: £</span>
+      <input type="number" id="hourly-rate" value="20" style="width:60px; padding:4px 8px; border:1px solid var(--border); border-radius:4px; font-size:12px; text-align:right;">
+    </div>
+  </div>
+
+  <div class="summary">
+    <h2>Total Return on Investment</h2>
+    <div class="summary-grid">
+      <div><div class="summary-val" id="s-cost">£0</div><div class="summary-label">Annual cost savings</div></div>
+      <div><div class="summary-val" id="s-rev">£0</div><div class="summary-label">Annual revenue potential</div></div>
+      <div><div class="summary-val" id="s-time">£0</div><div class="summary-label">Annual time savings</div></div>
+    </div>
+    <div class="summary-total">
+      <div class="summary-total-val" id="s-total">£0</div>
+      <div class="summary-total-label">Total annual return</div>
+    </div>
+    <div class="summary-contract">
+      <div class="summary-contract-val" id="s-contract">£0</div>
+      <div class="summary-total-label">Over <span id="s-years">3</span>-year contract period</div>
+    </div>
+    <div class="contract-field">
+      <label>Contract length (years):</label>
+      <input type="number" id="contract-years" value="3" min="1" max="10">
+    </div>
+    <div class="summary-note">All values are estimates to be refined together with AP Race.</div>
+    <button class="print-btn" onclick="window.print()">Print this page</button>
+  </div>
+</div>
+
+<div class="footer">TicketCo x AP Race | ROI Calculator | Confidential</div>
+
+<script>
+const fmt = v => new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP',maximumFractionDigits:0}).format(v);
+function calc(){
+  const evRev=(+document.getElementById('ev-price').value||0)*(+document.getElementById('ev-qty').value||0);
+  const evCur=evRev*((+document.getElementById('ev-cur-fee').value||0)+(+document.getElementById('ev-cur-psp').value||0))/100;
+  const evTc=evRev*(+document.getElementById('ev-tc-fee').value||0)/100;
+  document.getElementById('ev-cur-total').textContent=fmt(evCur);
+  document.getElementById('ev-tc-total').textContent=fmt(evTc);
+
+  const clRev=(+document.getElementById('cl-price').value||0)*(+document.getElementById('cl-qty').value||0);
+  const clCur=clRev*((+document.getElementById('cl-cur-fee').value||0)+(+document.getElementById('cl-cur-psp').value||0))/100;
+  const clTc=clRev*(+document.getElementById('cl-tc-fee').value||0)/100;
+  document.getElementById('cl-cur-total').textContent=fmt(clCur);
+  document.getElementById('cl-tc-total').textContent=fmt(clTc);
+
+  const costSaving=(evCur-evTc)+(clCur-clTc);
+
+  let totalRev=0;
+  document.querySelectorAll('.opp-table tbody tr').forEach(row=>{
+    const u=+(row.querySelector('.units')?.value)||0;
+    const p=+(row.querySelector('.price')?.value)||0;
+    const y=u*p;
+    const c=row.querySelector('.yearly');
+    if(c){c.textContent=y>0?fmt(y):'0';totalRev+=y;}
+  });
+
+  let totalHrs=0;
+  document.querySelectorAll('.t-current').forEach((input,i)=>{
+    const c=+input.value||0;
+    const t=+(document.querySelectorAll('.t-ticketco')[i]?.value)||0;
+    const s=Math.max(0,c-t);
+    document.querySelectorAll('.t-saved')[i].textContent=s;
+    totalHrs+=s;
+  });
+  const timeSaving=totalHrs*(+document.getElementById('hourly-rate').value||0);
+
+  const years=+document.getElementById('contract-years').value||3;
+  const total=costSaving+totalRev+timeSaving;
+
+  document.getElementById('s-cost').textContent=fmt(costSaving);
+  document.getElementById('s-rev').textContent=fmt(totalRev);
+  document.getElementById('s-time').textContent=fmt(timeSaving);
+  document.getElementById('s-total').textContent=fmt(total);
+  document.getElementById('s-contract').textContent=fmt(total*years);
+  document.getElementById('s-years').textContent=years;
+}
+document.querySelectorAll('input').forEach(i=>i.addEventListener('input',calc));
+calc();
+</script>
+</body>
+</html>
